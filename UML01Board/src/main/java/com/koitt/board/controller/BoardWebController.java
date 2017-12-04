@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -85,9 +84,9 @@ public class BoardWebController {
 	// 글 작성 화면
 	@RequestMapping(value = "/new.do", method = RequestMethod.GET)
 	public String newBoard(Model model) {
-		
+
 		model.addAttribute("email", this.getPrincipal());
-		
+
 		return "new";
 	}
 
@@ -151,12 +150,12 @@ public class BoardWebController {
 			@RequestParam(value = "no", required = true) String no,
 			String password)
 					throws CommonException, UnsupportedEncodingException {
-
+		
 		boolean isMatched = userInfoService.isPasswordMatched(Integer.parseInt(no), password);
 		if (!isMatched) {
 			return "redirect:/board/remove.do?no=" + no + "&action=error-password";
 		}
-		
+
 		String filename = boardService.remove(no);
 		if (filename != null && !filename.trim().isEmpty()) {
 			fileService.remove(request, UPLOAD_FOLDER, filename);
@@ -186,16 +185,16 @@ public class BoardWebController {
 			int no,
 			String title,
 			String content,
-			@RequestParam("attachment") MultipartFile attachment, 
+			@RequestParam("attachment") MultipartFile attachment,
 			String password)
 					throws CommonException, Exception {
 		
-		// 비밀번호 비교해서 같지 않다면 오류메세지 출력
+		// 비밀번호 비교해서 같지 않다면 오류메시지 출력
 		boolean isMatched = userInfoService.isPasswordMatched(no, password);
 		if (!isMatched) {
 			return "redirect:/board/modify.do?no=" + no + "&action=error-password";
 		}
-		
+
 		Board board = new Board();
 		board.setNo(no);
 		board.setTitle(title);
@@ -289,26 +288,26 @@ public class BoardWebController {
 		logger.debug(e.getMessage());
 		return "exception";
 	}
-	
+
 	@ExceptionHandler(Exception.class)
 	public String handleException(Exception e) {
 		logger.debug(e.getMessage());
 		return "exception-common";
 	}
-	
+
 	// 현재 접속한 사용자의 email 리턴
-		private String getPrincipal() {
-			String username = null;
-			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-			Object principal = auth.getPrincipal();
+	private String getPrincipal() {
+		String username = null;
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Object principal = auth.getPrincipal();
 
-			if (principal instanceof UserDetails) {
-				username = ((UserDetails) principal).getUsername();
-			}
-			else {
-				username = principal.toString();
-			}
-
-			return username;
+		if (principal instanceof UserDetails) {
+			username = ((UserDetails) principal).getUsername();
 		}
+		else {
+			username = principal.toString();
+		}
+
+		return username;
+	}
 }

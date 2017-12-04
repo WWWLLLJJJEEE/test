@@ -8,8 +8,9 @@
 	<name>Spring35 Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
-		<springframework.version>3.2.18.RELEASE</springframework.version>
-		<springsecurity.version>3.2.10.RELEASE</springsecurity.version>
+		<springframework.version>4.3.12.RELEASE</springframework.version>
+		<springsecurity.version>4.2.3.RELEASE</springsecurity.version>
+		<jackson.library>2.9.2</jackson.library>
 	</properties>
 	<dependencies>
 		<!-- Spring -->
@@ -47,6 +48,11 @@
 		</dependency>
 		
 		<!-- Servlet -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>jstl</artifactId>
@@ -100,6 +106,25 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-taglibs</artifactId>
 			<version>${springsecurity.version}</version>
+		</dependency>
+		
+		<!-- Jackson libraries -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.library}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+			<version>${jackson.library}</version>
+		</dependency>
+		
+		<!-- apache commons codec (Base64) -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
 		</dependency>
 	</dependencies>
 	<build>

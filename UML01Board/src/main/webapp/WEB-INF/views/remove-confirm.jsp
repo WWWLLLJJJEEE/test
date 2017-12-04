@@ -11,7 +11,7 @@
 	<p>정말로 삭제하시겠습니까?</p>
 	<form action="<c:url value='/board/remove.do'/>" method="post">
 		<c:if test="${ param.action == 'error-password' }">
-			<p>비밀번호를 잘못 입력하셨습니다. 다시 확인해주세요</p>
+			<p>비밀번호를 잘못 입력했습니다.</p>
 		</c:if>
 		<input type="hidden" name="no" value="${ no }">
 		<div>

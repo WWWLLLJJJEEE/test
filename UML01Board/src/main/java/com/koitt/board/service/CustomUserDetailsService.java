@@ -49,7 +49,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 		
 		for (UserType item : userInfo.getUserTypes()) {
 			logger.debug("UserType: " + item);
-			authorities.add(new SimpleGrantedAuthority(item.getType()));
+			authorities.add(new SimpleGrantedAuthority("ROLE_" + item.getType()));
 		}
 		
 		logger.debug("authorities: " + authorities);
