@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.koitt</groupId>
-	<artifactId>Spring35</artifactId>
+	<artifactId>UML01Board</artifactId>
 	<packaging>war</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Spring35 Maven Webapp</name>
+	<name>UML01Board Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<springframework.version>4.3.12.RELEASE</springframework.version>
@@ -128,7 +128,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>Spring35</finalName>
+		<finalName>UML01Board</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
