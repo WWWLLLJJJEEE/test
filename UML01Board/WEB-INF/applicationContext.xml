@@ -17,6 +17,7 @@
 		create-session="stateless">
 		<http-basic entry-point-ref="customBasicAuthenticationEntryPoint"/>
 		<intercept-url pattern="/rest/**" access="hasRole('ROLE_ADMIN')"/>
+		<intercept-url method="POST" pattern="/rest/user/login" access="permitAll"/>
 		<intercept-url method="OPTIONS" pattern="/rest/**" 
 			access="IS_AUTHENTICATED_ANONYMOUSLY"/>
 		<csrf disabled="true"/>
