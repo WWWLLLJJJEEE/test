@@ -4,47 +4,91 @@
 <meta charset="UTF-8">
 <title>게시판 로그인 페이지</title>
 <meta name="viewport"
-	content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1,
-		width=device-width">
+	content="user-scalable=no, initial-scale=1, maximum-scale=1,
+	minimum-scale=1, width=device-width">
 <link rel="stylesheet" href="css/jquery.mobile-1.4.5.css">
-
 <script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
 <script>
 	var REST_SERVICE_URI = 'http://192.168.0.18:8082/UML01Board/rest';
 
 	$(document).on('pagecreate', function() {
 		$('#btnLogin').click(function(e) {
-					// 기본 이벤트 동작하지 않도록 하기
-					e.preventDefault();
+			// 기본 이벤트 동작하지 않도록 하기
+			e.preventDefault();
 
-					// form 가져오기
-					var form = $('#frmLogin')[0];
+			// form 가져오기
+			var form = $('#frmLogin')[0];
 
-					// FormData 객체 생성
-					var formData = new FormData(form);
+			// FormData 객체 생성
+			var formData = new FormData(form);
 
-					// 두 번 실행 방지를 위해 버튼 비활성
-					$('#btnLogin').prop('disabled', true);
-					
-					$.ajax({
-						type: 'post',
-						url: REST_SERVICE_URI + '/user/login',
-						data: formData,
-						processData: false,
-						contentType: false,
-						cache: false,
-						success: function(data, textStatus, xhr){
-							$('#btnLogin').prop('disabled', false);
-							alert(data);
-						},
-						error: function(error) {
-							$('#btnLogin').prop('disabled', false);
-							alert(error);
+			// 두 번 실행 방지를 위해 버튼 비활성
+			$('#btnLogin').prop('disabled', true);
+			
+			$.ajax({
+				type: 'post',
+				url: REST_SERVICE_URI + '/user/login',
+				data: formData,
+				processData: false,
+				contentType: false,
+				cache: false,
+				success: function(data, textStatus, xhr) {
+					if (typeof(Storage) !== 'undefined'){
+							alert('ok');
 						}
-				});
+					else {
+							alert('not support');
+						}
+					
+					
+					$('#btnLogin').prop('disabled', false);
+
+					var nextUrl = xhr.getResponseHeader('Location');
+					
+					sessionStorage.setItem = ('base64Credentials', data);
+					
+					alert(nextUrl + "/" + sessionStorage.getItem('base64Credentials'));
+				},
+				error: function(error) {
+					$('#btnLogin').prop('disabled', false);
+					alert(error);
+				}
 			});
 		});
-	
+
+		$('#btnJoinSubmit').click(function(e) {
+			// 기본 이벤트 동작하지 않도록 하기
+			e.preventDefault();
+
+			// form 가져오기
+			var form = $('#frmJoin')[0];
+
+			// FormData 객체 생성
+			var formData = new FormData(form);
+
+			// 두 번 실행 방지를 위해 버튼 비활성
+			$('#btnJoinSubmit').prop('disabled', true);
+			
+			$.ajax({
+				type: 'post',
+				url: REST_SERVICE_URI + '/user',
+				enctype: 'multipart/form-data',
+				data: formData,
+				processData: false,
+				contentType: false,
+				cache: false,
+				timeout: 60000,
+				success: function(data, textStatus, xhr) {
+					$('#btnJoinSubmit').prop('disabled', false);
+					$.mobile.changePage('index.html');
+				},
+				error: function(error) {
+					$('#btnJoinSubmit').prop('disabled', false);
+					alert(error);
+				}
+			});
+		});
+	});
 </script>
 <script type="text/javascript" src="js/jquery.mobile-1.4.5.js"></script>
 </head>
@@ -56,17 +100,17 @@
 		<div data-role="content">
 			<form method="post" id="frmLogin">
 				<div data-role="fieldcontain">
-					<label for="email">이메일</label> <input type="email" name="email"
-						id="email">
+					<label for="email">이메일</label>
+					<input type="email" name="email" id="email">
 				</div>
 				<div data-role="fieldcontain">
-					<label for="password">비밀번호</label> <input type="password"
-						name="password" id="password">
+					<label for="password">비밀번호</label>
+					<input type="password" name="password" id="password">
 				</div>
-
+				
 				<div class="ui-grid-a">
 					<div class="ui-block-a">
-						<a href="join.html" data-role="button" id="btnJoin">회원가입</a>
+						<a href="join.html" data-role="button" id="btnJoin">회원 가입</a>
 					</div>
 					<div class="ui-block-b">
 						<a href="#" data-role="button" id="btnLogin">로그인</a>

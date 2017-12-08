@@ -18,6 +18,7 @@
 		<http-basic entry-point-ref="customBasicAuthenticationEntryPoint"/>
 		<intercept-url method="POST" pattern="/rest/user/login" 
 						access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+		<intercept-url pattern="/rest/user" method="POST" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
 		<intercept-url pattern="/rest/**" access="ROLE_ADMIN, ROLE_USER"/>
 		<intercept-url method="OPTIONS" pattern="/rest/**" 
 			access="IS_AUTHENTICATED_ANONYMOUSLY"/>
