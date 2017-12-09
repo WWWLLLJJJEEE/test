@@ -11,9 +11,12 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -61,7 +64,7 @@ public class UserRestController {
 				logger.debug(base64Credentials);
 				
 				HttpHeaders headers = new HttpHeaders();
-				headers.setLocation(ucBuilder.path("/user/{email}").buildAndExpand(
+				headers.setLocation(ucBuilder.path("/rest/user/{email}").buildAndExpand(
 						userInfo.getEmail()).toUri());
 				
 				// return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
@@ -121,9 +124,27 @@ public class UserRestController {
 				userInfoService.newUser(user);
 
 				HttpHeaders headers = new HttpHeaders();
-				headers.setLocation(ucBuilder.path("/user/{email}").buildAndExpand(
+				headers.setLocation(ucBuilder.path("/rest/user/{email}").buildAndExpand(
 						user.getEmail()).toUri());
 				
 				return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
 	}
+			
+	// 사용자 불러오기
+			@RequestMapping(value = "/user/{email}", method = RequestMethod.GET,
+					produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_XML_VALUE})
+			public ResponseEntity<UserInfo> homePage(@PathVariable("email") String email) {
+
+				// 로그인 된 상태이면
+				UserInfo item = null;
+				if (email != null && !email.trim().isEmpty()) {
+					item = userInfoService.detail(email);
+					
+					if (item != null) {
+					return new ResponseEntity<UserInfo>(item, HttpStatus.OK);
+				}
+			}
+
+				return new ResponseEntity<UserInfo>(new UserInfo(), HttpStatus.NO_CONTENT);
+		}
 }
