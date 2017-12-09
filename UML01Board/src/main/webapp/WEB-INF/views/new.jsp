@@ -21,7 +21,7 @@
 		<div>
 			<label>첨부파일 <input type="file" name="attachment" multiple="multiple"></label>
 		</div>
-		<input type="hidden" name="id" value="${ email }">
+		<input type="hidden" name="id" value="${ id }">
 		<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 		<input type="submit">
 		<input type="reset">

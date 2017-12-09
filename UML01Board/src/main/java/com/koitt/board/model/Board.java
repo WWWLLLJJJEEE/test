@@ -8,20 +8,22 @@ public class Board {
 	private Integer no;
 	private String title;
 	private String content;
-	private String id;
+	private Integer id;
 	private Date regdate;
 	private String attachment;
+	private UserInfo userInfo;
 	
 	public Board() {}
 
-	public Board(Integer no, String title, String content, 
-			String id, Date regdate, String attachment) {
+	public Board(Integer no, String title, String content, Integer id, Date regdate, String attachment,
+			UserInfo userInfo) {
 		this.no = no;
 		this.title = title;
 		this.content = content;
 		this.id = id;
 		this.regdate = regdate;
 		this.attachment = attachment;
+		this.userInfo = userInfo;
 	}
 
 	public Integer getNo() {
@@ -48,11 +50,11 @@ public class Board {
 		this.content = content;
 	}
 
-	public String getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -72,36 +74,73 @@ public class Board {
 		this.attachment = attachment;
 	}
 
+	public UserInfo getUserInfo() {
+		return userInfo;
+	}
+
+	public void setUserInfo(UserInfo userInfo) {
+		this.userInfo = userInfo;
+	}
+
 	@Override
 	public int hashCode() {
-		int result = this.no.hashCode() + this.content.hashCode()
-				+ this.id.hashCode() + this.title.hashCode() + this.regdate.hashCode()
-				+ this.attachment.hashCode();
-		
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((attachment == null) ? 0 : attachment.hashCode());
+		result = prime * result + ((content == null) ? 0 : content.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((no == null) ? 0 : no.hashCode());
+		result = prime * result + ((regdate == null) ? 0 : regdate.hashCode());
+		result = prime * result + ((title == null) ? 0 : title.hashCode());
+		result = prime * result + ((userInfo == null) ? 0 : userInfo.hashCode());
 		return result;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
-		
-		if (this == obj) {
+		if (this == obj)
 			return true;
-		}
-		
-		if (obj == null) {
+		if (obj == null)
 			return false;
-		}
-		
-		if (!(obj instanceof Board)) {
+		if (getClass() != obj.getClass())
 			return false;
-		}
-		
-		Board item = (Board) obj;
-		if (this.no.equals(item.no)) {
-			return true;
-		}
-		
-		return false;
+		Board other = (Board) obj;
+		if (attachment == null) {
+			if (other.attachment != null)
+				return false;
+		} else if (!attachment.equals(other.attachment))
+			return false;
+		if (content == null) {
+			if (other.content != null)
+				return false;
+		} else if (!content.equals(other.content))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (no == null) {
+			if (other.no != null)
+				return false;
+		} else if (!no.equals(other.no))
+			return false;
+		if (regdate == null) {
+			if (other.regdate != null)
+				return false;
+		} else if (!regdate.equals(other.regdate))
+			return false;
+		if (title == null) {
+			if (other.title != null)
+				return false;
+		} else if (!title.equals(other.title))
+			return false;
+		if (userInfo == null) {
+			if (other.userInfo != null)
+				return false;
+		} else if (!userInfo.equals(other.userInfo))
+			return false;
+		return true;
 	}
 
 	@Override
@@ -119,6 +158,8 @@ public class Board {
 		builder.append(regdate);
 		builder.append(", attachment=");
 		builder.append(attachment);
+		builder.append(", userInfo=");
+		builder.append(userInfo);
 		builder.append("]");
 		return builder.toString();
 	}

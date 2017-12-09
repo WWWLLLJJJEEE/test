@@ -3,6 +3,8 @@ package com.koitt.board.service;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import com.koitt.board.model.UserTypeId;
 @Service
 public class UserInfoServiceImpl implements UserInfoService {
 	
+	private Logger logger = LogManager.getLogger(this.getClass());
+	
 	@Autowired
 	private UserInfoDao userInfoDao;
 	
@@ -29,8 +33,8 @@ public class UserInfoServiceImpl implements UserInfoService {
 	private PasswordEncoder encoder;
 
 	@Override
-	public UserInfo detail(String email) throws CommonException {
-		return userInfoDao.select(email);
+	public UserInfo detail(Integer id) throws CommonException {
+		return userInfoDao.select(id);
 	}
 
 	@Transactional
@@ -51,14 +55,14 @@ public class UserInfoServiceImpl implements UserInfoService {
 
 	@Transactional
 	@Override
-	public String delete(String email, String password) throws CommonException {
+	public String delete(Integer id, String password) throws CommonException {
 		
-		UserInfo item = userInfoDao.select(email);
+		UserInfo item = userInfoDao.select(id);
 		
 		boolean isMatched = encoder.matches(password, item.getPassword());
 		if (isMatched) {
-			userInfoDao.deleteUserTypes(email);
-			userInfoDao.delete(email);
+			userInfoDao.deleteUserTypes(id);
+			userInfoDao.delete(id);
 			
 		} else {
 			throw new CommonException("E60: 비밀번호가 동일하지 않아 삭제 실패");
@@ -70,7 +74,7 @@ public class UserInfoServiceImpl implements UserInfoService {
 	@Override
 	public String modify(UserInfo userInfo) throws CommonException {
 		
-		UserInfo item = userInfoDao.select(userInfo.getEmail());
+		UserInfo item = userInfoDao.select(userInfo.getId());
 		String oldFilename = item.getAvatar();
 		userInfoDao.update(userInfo);
 
@@ -78,15 +82,15 @@ public class UserInfoServiceImpl implements UserInfoService {
 	}
 
 	@Override
-	public boolean isPasswordMatched(String email, String rawPassword) throws CommonException {
+	public boolean isPasswordMatched(Integer id, String rawPassword) throws CommonException {
 		
 		// 데이터베이스로부터 현재 사용자의 암호화된 비밀번호를 가져온다.
-		UserInfo item = userInfoDao.select(email);
+		UserInfo item = userInfoDao.select(id);
 		return encoder.matches(rawPassword, item.getPassword());
 	}
 
 	@Override
-	public boolean isPasswordMatched(Integer no, String rawPassword) throws CommonException {
+	public boolean isBoardMatched(Integer no, String rawPassword) throws CommonException {
 		/*
 		 *  게시물 번호를 이용하여 게시물을 가져온 뒤
 		 *  게시물의 작성자 email값을 획득한 후,
@@ -98,5 +102,26 @@ public class UserInfoServiceImpl implements UserInfoService {
 		
 		// 해당 사용자의 비밀번호와 입력한 비밀번호 비교한 결과 리턴
 		return encoder.matches(rawPassword, userInfo.getPassword());
+	}
+
+	@Override
+	public UserInfo detail(String email) throws CommonException {
+		return userInfoDao.selectByEmail(email);
+	}
+
+	@Override
+	public String delete(String email, String password) throws CommonException {
+		UserInfo item = userInfoDao.selectByEmail(email);
+		
+		boolean isMatched = encoder.matches(password, item.getPassword());
+		if (isMatched) {
+			userInfoDao.deleteUserTypes(item.getId());
+			userInfoDao.delete(item.getId());
+			
+		} else {
+			throw new CommonException("E61: 비밀번호가 동일하지 않아 삭제 실패");
+		}
+
+		return item.getAvatar();
 	}
 }

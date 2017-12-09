@@ -41,9 +41,9 @@ public class UserWebController {
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String homePage(Model model) {
+		
 		String email = this.getPrincipal();
-
-		// 로그인 된 상태이면
+		
 		if (email != null && !email.trim().isEmpty()) {
 			UserInfo item = userInfoService.detail(email);
 			model.addAttribute("userInfo", item);
@@ -140,8 +140,8 @@ public class UserWebController {
 
 	@RequestMapping(value = "/user/delete" , method = RequestMethod.POST)
 	public String delete(HttpServletRequest request, String password) throws CommonException, UnsupportedEncodingException {
-
-		String filename = userInfoService.delete(this.getPrincipal(), password);
+		String email = this.getPrincipal();
+		String filename = userInfoService.delete(email, password);
 		if (filename != null && !filename.trim().isEmpty()) {
 			fileService.remove(request, UPLOAD_FOLDER, filename);
 		}
@@ -155,7 +155,8 @@ public class UserWebController {
 
 		UserInfo item = null;
 
-		item = userInfoService.detail(this.getPrincipal());
+		String email = this.getPrincipal();
+		item = userInfoService.detail(email);
 
 		model.addAttribute("item", item);
 
@@ -165,7 +166,7 @@ public class UserWebController {
 	// 사용자 수정 후, 사용자 설정 화면으로 이동
 	@RequestMapping(value = "/user/modify", method = RequestMethod.POST)
 	public String modify(HttpServletRequest request,
-			String email,
+			Integer id,
 			String oldPassword,
 			String newPassword,
 			String name,
@@ -173,13 +174,13 @@ public class UserWebController {
 					throws CommonException,Exception {
 
 		// 기존 비밀번호 검사 후 수정할지 결정
-		boolean isMatched = userInfoService.isPasswordMatched(email, oldPassword);
+		boolean isMatched = userInfoService.isPasswordMatched(id, oldPassword);
 		if (!isMatched) {
 			return "redirect:/user/modify?action=error-password";
 		}
 
 		UserInfo user = new UserInfo();
-		user.setEmail(email);
+		user.setId(id);
 		user.setPassword(encoder.encode(newPassword));
 		user.setName(name);
 

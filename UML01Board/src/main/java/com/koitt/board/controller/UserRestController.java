@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -43,108 +42,107 @@ public class UserRestController {
 	
 	// 사용자 로그인
 	@RequestMapping(value = "/user/login", method = RequestMethod.POST)
-	public ResponseEntity<String> login(UserInfo userInfo, UriComponentsBuilder ucBuilder){
-			
-			logger.debug(userInfo);
+	public ResponseEntity<String> login(UserInfo userInfo, 
+			UriComponentsBuilder ucBuilder) {
 		
-			// 아이디 존재 유무와 비밀번호 일치 여부 확인
-			boolean isMatched =  userInfoService.isPasswordMatched(
-						userInfo.getEmail(), 
-						userInfo.getPassword());
+		logger.debug(userInfo);
+		
+		// 아이디 존재 유무와 비밀번호 일치 여부 확인
+		boolean isMatched = userInfoService.isPasswordMatched(
+				userInfo.getId(),
+				userInfo.getPassword());
+		
+		if (isMatched) {
+			// Base64 인코딩 전 평문
+			String plainCredentials = 
+					userInfo.getEmail() + ":" + userInfo.getPassword();
 			
-			if (isMatched) {
-				
-				// Base64 인코딩 전 평문
-				String plainCredentials = userInfo.getEmail() + ":" + userInfo.getPassword();
-				
-				// 평문을 Base64로 인코딩
-				String base64Credentials = 
-						new String(Base64.encodeBase64(plainCredentials.getBytes()));
-				
-				logger.debug(base64Credentials);
-				
-				HttpHeaders headers = new HttpHeaders();
-				headers.setLocation(ucBuilder.path("/rest/user/{email}").buildAndExpand(
-						userInfo.getEmail()).toUri());
-				
-				// return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
-				
-				return new ResponseEntity<String>(base64Credentials, headers, HttpStatus.OK);
-			}
+			// 평문을 Base64로 인코딩
+			String base64Credentials = 
+					new String(
+							Base64.encodeBase64(plainCredentials.getBytes()
+					));
 			
-			logger.debug("login failed!");
-			return new ResponseEntity<String>("", HttpStatus.NOT_FOUND);
-	}
+			logger.debug(base64Credentials);
 			
-			// /rest/user GET : 모든 사용자를 서버로 부터 가져온다.
-			// /rest/user/admin@koitt.com GET: email 
-			// /rest/user POST: 사용자를 생성한다.
-			// /rest/user
+			HttpHeaders headers = new HttpHeaders();
+			headers.setLocation(ucBuilder.path("/rest/user/{id}")
+					.buildAndExpand(userInfo.getId())
+					.toUri());
 			
-	
-			// 사용자 생성
-			@RequestMapping(value = "/user", method = RequestMethod.POST)
-			public ResponseEntity<Void> newUser(HttpServletRequest request,
-					String email,
-					String password,
-					String name,
-					@RequestParam("avatar") MultipartFile avatar, UriComponentsBuilder ucBuilder)
-							throws CommonException, Exception {
-
-				UserInfo user = new UserInfo();
-				user.setEmail(email);
-				user.setPassword(password);
-				user.setName(name);
-
-				// 최상위 경로 밑에 upload 폴더의 경로를 가져온다.
-				String path = request.getServletContext().getRealPath(UPLOAD_FOLDER);
-
-				// MultipartFile 객체에서 파일명을 가져온다.
-				String originalName = avatar.getOriginalFilename();
-
-				// upload 폴더가 없다면, upload 폴더 생성
-				File directory = new File(path);
-				if (!directory.exists()) {
-					directory.mkdir();
-				}
-
-				// avatar 객체를 이용하여, 파일을 서버에 전송
-				if (avatar != null && !avatar.isEmpty()) {
-					int idx = originalName.lastIndexOf(".");
-					String fileName = originalName.substring(0, idx);
-					String ext = originalName.substring(idx, originalName.length());
-					String uploadFilename = fileName
-							+ Long.toHexString(System.currentTimeMillis())
-							+ ext;
-					avatar.transferTo(new File(path, uploadFilename));
-					uploadFilename = URLEncoder.encode(uploadFilename, "UTF-8");
-					user.setAvatar(uploadFilename);
-				}
-
-				userInfoService.newUser(user);
-
-				HttpHeaders headers = new HttpHeaders();
-				headers.setLocation(ucBuilder.path("/rest/user/{email}").buildAndExpand(
-						user.getEmail()).toUri());
-				
-				return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
-	}
-			
-	// 사용자 불러오기
-			@RequestMapping(value = "/user/{email}", method = RequestMethod.GET,
-					produces = {MediaType.APPLICATION_JSON_UTF8_VALUE, MediaType.APPLICATION_XML_VALUE})
-			public ResponseEntity<UserInfo> homePage(@PathVariable("email") String email) {
-
-				// 로그인 된 상태이면
-				UserInfo item = null;
-				if (email != null && !email.trim().isEmpty()) {
-					item = userInfoService.detail(email);
-					
-					if (item != null) {
-					return new ResponseEntity<UserInfo>(item, HttpStatus.OK);
-				}
-			}
-
-				return new ResponseEntity<UserInfo>(new UserInfo(), HttpStatus.NO_CONTENT);
+			return new ResponseEntity<String>(base64Credentials, headers, HttpStatus.OK);
 		}
+		
+		logger.debug("login failed");
+		return new ResponseEntity<String>("", HttpStatus.NOT_FOUND);
+	}
+	
+	// 사용자 생성
+	@RequestMapping(value = "/user", method = RequestMethod.POST)
+	public ResponseEntity<Void> newUser(HttpServletRequest request,
+			String email,
+			String password,
+			String name,
+			@RequestParam("avatar") MultipartFile avatar,
+			UriComponentsBuilder ucBuilder)
+					throws CommonException, Exception {
+
+		UserInfo user = new UserInfo();
+		user.setEmail(email);
+		user.setPassword(password);
+		user.setName(name);
+
+		// 최상위 경로 밑에 upload 폴더의 경로를 가져온다.
+		String path = request.getServletContext().getRealPath(UPLOAD_FOLDER);
+
+		// MultipartFile 객체에서 파일명을 가져온다.
+		String originalName = avatar.getOriginalFilename();
+
+		// upload 폴더가 없다면, upload 폴더 생성
+		File directory = new File(path);
+		if (!directory.exists()) {
+			directory.mkdir();
+		}
+
+		// avatar 객체를 이용하여, 파일을 서버에 전송
+		if (avatar != null && !avatar.isEmpty()) {
+			int idx = originalName.lastIndexOf(".");
+			String fileName = originalName.substring(0, idx);
+			String ext = originalName.substring(idx, originalName.length());
+			String uploadFilename = fileName
+					+ Long.toHexString(System.currentTimeMillis())
+					+ ext;
+			avatar.transferTo(new File(path, uploadFilename));
+			uploadFilename = URLEncoder.encode(uploadFilename, "UTF-8");
+			user.setAvatar(uploadFilename);
+		}
+
+		userInfoService.newUser(user);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setLocation(ucBuilder.path("/rest/user/{id}")
+				.buildAndExpand(user.getId())
+				.toUri());
+		
+		return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+	}
+	
+	// 사용자 불러오기
+	@RequestMapping(value = "/user/{id}", method = RequestMethod.GET,
+			produces = { MediaType.APPLICATION_JSON_UTF8_VALUE, 
+						MediaType.APPLICATION_XML_VALUE })
+	public ResponseEntity<UserInfo> homePage(@PathVariable("id") Integer id) {
+
+		// 로그인 된 상태이면
+		UserInfo item = null;
+		if (id != null) {
+			item = userInfoService.detail(id);
+			
+			if (item != null) {
+				return new ResponseEntity<UserInfo>(item, HttpStatus.OK);
+			}
+		}
+
+		return new ResponseEntity<UserInfo>(new UserInfo(), HttpStatus.NO_CONTENT);
+	}
 }

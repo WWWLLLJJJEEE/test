@@ -16,7 +16,7 @@
 			<label>번호 ${ item.no }</label>
 		</div>
 		<div>
-			<label>작성자 ${ item.id }</label>
+			<label>작성자 ${ item.userInfo.name }</label>
 		</div>
 		<div>
 			<label>제목 <input type="text" name="title" value="${ item.title }"></label>

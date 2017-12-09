@@ -12,16 +12,21 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationEn
 import org.springframework.stereotype.Component;
 
 @Component("customBasicAuthenticationEntryPoint")
-public class CustomBasicAuthenticationEntryPoint extends BasicAuthenticationEntryPoint{
-	
+public class CustomBasicAuthenticationEntryPoint 
+	extends BasicAuthenticationEntryPoint {
+
 	@Override
-	public void commence(HttpServletRequest request, HttpServletResponse response,
-			AuthenticationException authException) throws IOException, ServletException {
+	public void commence(HttpServletRequest request, 
+			HttpServletResponse response,
+			AuthenticationException authException) 
+					throws IOException, ServletException {
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-		response.addHeader("WWW-Authenticate", "Basic realm=" + getRealmName() + "");
+		response.addHeader("WWW-Authenticate", 
+				"Basic realm=" + getRealmName() + "");
 		
 		PrintWriter writer = response.getWriter();
-		writer.println("HTTP Status 401 : " + authException.getMessage());
+		writer.println("HTTP Status 401 : " + 
+				authException.getMessage());
 	}
 	
 	@Override

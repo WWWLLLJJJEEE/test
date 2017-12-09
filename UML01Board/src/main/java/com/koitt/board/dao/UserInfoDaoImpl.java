@@ -39,11 +39,11 @@ public class UserInfoDaoImpl implements UserInfoDao {
 	}
 
 	@Override
-	public UserInfo select(String email) throws CommonException {
+	public UserInfo select(Integer id) throws CommonException {
 		UserInfo userInfo = null;
 
 		try {
-			userInfo = sqlSession.selectOne(MAPPER_NAMESPACE + ".select", email);
+			userInfo = sqlSession.selectOne(MAPPER_NAMESPACE + ".select", id);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -78,9 +78,9 @@ public class UserInfoDaoImpl implements UserInfoDao {
 	}
 
 	@Override
-	public void delete(String email) throws CommonException{
+	public void delete(Integer id) throws CommonException{
 		try {
-			sqlSession.delete(MAPPER_NAMESPACE+ ".delete", email);
+			sqlSession.delete(MAPPER_NAMESPACE+ ".delete", id);
 
 		} catch (Exception e) {
 			logger.debug(e.getMessage());
@@ -90,9 +90,9 @@ public class UserInfoDaoImpl implements UserInfoDao {
 	}
 
 	@Override
-	public void deleteUserTypes(String email) throws CommonException{
+	public void deleteUserTypes(Integer id) throws CommonException{
 		try {
-			sqlSession.delete(MAPPER_NAMESPACE+ ".deleteUserTypes", email);
+			sqlSession.delete(MAPPER_NAMESPACE+ ".deleteUserTypes", id);
 
 		} catch (Exception e) {
 			logger.debug(e.getMessage());
@@ -109,5 +109,21 @@ public class UserInfoDaoImpl implements UserInfoDao {
 			logger.debug(e.getMessage());
 			throw new CommonException("E37: 사용자 수정 실패");
 		}
+	}
+
+	@Override
+	public UserInfo selectByEmail(String email) throws CommonException {
+		UserInfo userInfo = null;
+
+		try {
+			userInfo = sqlSession.selectOne(MAPPER_NAMESPACE + ".selectByEmail", email);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			//logger.debug(e.getMessage());
+			throw new CommonException("E38: 사용자 검색 실패");
+		}
+
+		return userInfo;
 	}
 }

@@ -12,12 +12,28 @@
 		VALUES (#{no}, #{title}, #{content}, #{id}, SYSDATE, #{attachment})
 	</insert>
 	
-	<select id="select" parameterType="String" resultType="Board">
-		SELECT * FROM board WHERE no = #{no}
+	<resultMap type="Board" id="boardResultMap">
+		<id property="no" column="no" />
+		<result property="title" column="title" />
+		<result property="content" column="content" />
+		<result property="id" column="id" />
+		<result property="regdate" column="regdate" />
+		<result property="attachment" column="attachment" />
+		<result property="userInfo.email" column="email" />
+		<result property="userInfo.name" column="name" />
+		<result property="userInfo.avatar" column="avatar" />
+	</resultMap>
+	
+	<select id="select" parameterType="String" resultMap="boardResultMap">
+		SELECT b.no, b.title, b.content, b.id, b.regdate, b.attachment, u.email, u.name, u.avatar
+		FROM user_info u, board b
+		WHERE b.id = u.id AND no = #{no}
 	</select>
 	
-	<select id="selectAll" resultType="Board">
-		SELECT * FROM board ORDER BY no DESC
+	<select id="selectAll" resultMap="boardResultMap">
+		SELECT b.no, b.title, b.content, b.id, b.regdate, b.attachment, u.email, u.name, u.avatar
+		FROM user_info u, board b
+		WHERE b.id = u.id ORDER BY b.no DESC
 	</select>
 	
 	<select id="count" resultType="int">

@@ -12,7 +12,7 @@
 		<dt>번호</dt>
 		<dd>${ item.no }</dd>
 		<dt>작성자</dt>
-		<dd>${ item.id }</dd>
+		<dd>${ item.userInfo.name }</dd>
 		<dt>작성일</dt>
 		<dd>${ item.regdate }</dd>
 		<dt>제목</dt>

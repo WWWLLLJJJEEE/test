@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.koitt.board.model.Board;
 import com.koitt.board.model.CommonException;
+import com.koitt.board.model.UserInfo;
 import com.koitt.board.service.BoardService;
 import com.koitt.board.service.FileService;
 import com.koitt.board.service.UserInfoService;
@@ -55,8 +56,10 @@ public class BoardWebController {
 		List<Board> list = null;
 
 		list = boardService.list();
+		
+		logger.debug(list);
+		
 		model.addAttribute("list", list);
-
 		return "list";
 	}
 
@@ -84,8 +87,12 @@ public class BoardWebController {
 	// 글 작성 화면
 	@RequestMapping(value = "/new.do", method = RequestMethod.GET)
 	public String newBoard(Model model) {
-
-		model.addAttribute("email", this.getPrincipal());
+		
+		String email = this.getPrincipal();
+		UserInfo item = userInfoService.detail(email);
+		
+		model.addAttribute("id", item.getId());
+		model.addAttribute("email", item.getEmail());
 
 		return "new";
 	}
@@ -93,7 +100,7 @@ public class BoardWebController {
 	// 글 작성 후, 글 목록 화면으로 이동
 	@RequestMapping(value = "/new.do", method = RequestMethod.POST)
 	public String newBoard(HttpServletRequest request,
-			String id,
+			Integer id,
 			String title,
 			String content,
 			@RequestParam("attachment") MultipartFile attachment)
@@ -151,7 +158,7 @@ public class BoardWebController {
 			String password)
 					throws CommonException, UnsupportedEncodingException {
 		
-		boolean isMatched = userInfoService.isPasswordMatched(Integer.parseInt(no), password);
+		boolean isMatched = userInfoService.isBoardMatched(Integer.parseInt(no), password);
 		if (!isMatched) {
 			return "redirect:/board/remove.do?no=" + no + "&action=error-password";
 		}
@@ -190,7 +197,7 @@ public class BoardWebController {
 					throws CommonException, Exception {
 		
 		// 비밀번호 비교해서 같지 않다면 오류메시지 출력
-		boolean isMatched = userInfoService.isPasswordMatched(no, password);
+		boolean isMatched = userInfoService.isBoardMatched(no, password);
 		if (!isMatched) {
 			return "redirect:/board/modify.do?no=" + no + "&action=error-password";
 		}

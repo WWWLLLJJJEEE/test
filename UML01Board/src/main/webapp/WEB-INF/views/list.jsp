@@ -22,7 +22,7 @@
 			<tr>
 				<td><a href="<c:url value='/board/detail.do?no=${ item.no }'/>">${ item.no }</a></td>
 				<td>${ item.title }</td>
-				<td>${ item.id }</td>
+				<td>${ item.userInfo.name }</td>
 				<td>${ item.regdate }</td>
 			</tr>
 		</c:forEach>
