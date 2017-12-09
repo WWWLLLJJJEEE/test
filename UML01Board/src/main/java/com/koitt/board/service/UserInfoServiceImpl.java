@@ -88,6 +88,14 @@ public class UserInfoServiceImpl implements UserInfoService {
 		UserInfo item = userInfoDao.select(id);
 		return encoder.matches(rawPassword, item.getPassword());
 	}
+	
+	@Override
+	public boolean isPasswordMatched(String email, String rawPassword) throws CommonException {
+		
+		// 데이터베이스로부터 현재 사용자의 암호화된 비밀번호를 가져온다.
+		UserInfo item = userInfoDao.selectByEmail(email);
+		return encoder.matches(rawPassword, item.getPassword());
+	}
 
 	@Override
 	public boolean isBoardMatched(Integer no, String rawPassword) throws CommonException {

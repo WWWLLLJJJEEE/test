@@ -24,5 +24,8 @@ public interface UserInfoService {
 
 	// email 값을 이용하여 사용자 삭제
 	public String delete(String email, String password) throws CommonException;
+	
+	// 사용자의 email 값을 이용하여 비밀번호를 불러온 다음, 입력한 비밀번호와 비교
+	boolean isPasswordMatched(String email, String rawPassword) throws CommonException;
 
 }

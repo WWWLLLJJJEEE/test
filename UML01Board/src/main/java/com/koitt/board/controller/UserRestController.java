@@ -49,7 +49,7 @@ public class UserRestController {
 		
 		// 아이디 존재 유무와 비밀번호 일치 여부 확인
 		boolean isMatched = userInfoService.isPasswordMatched(
-				userInfo.getId(),
+				userInfo.getEmail(),
 				userInfo.getPassword());
 		
 		if (isMatched) {
@@ -64,6 +64,8 @@ public class UserRestController {
 					));
 			
 			logger.debug(base64Credentials);
+			
+			userInfo = userInfoService.detail(userInfo.getEmail());
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.setLocation(ucBuilder.path("/rest/user/{id}")
@@ -131,18 +133,23 @@ public class UserRestController {
 	@RequestMapping(value = "/user/{id}", method = RequestMethod.GET,
 			produces = { MediaType.APPLICATION_JSON_UTF8_VALUE, 
 						MediaType.APPLICATION_XML_VALUE })
-	public ResponseEntity<UserInfo> homePage(@PathVariable("id") Integer id) {
+	public ResponseEntity<UserInfo> homePage(@PathVariable("id") Integer id, 
+			UriComponentsBuilder ucBuilder) {
 
 		// 로그인 된 상태이면
 		UserInfo item = null;
 		if (id != null) {
 			item = userInfoService.detail(id);
-			
+				
 			if (item != null) {
-				return new ResponseEntity<UserInfo>(item, HttpStatus.OK);
+				HttpHeaders headers = new HttpHeaders();
+				headers.setLocation(ucBuilder.path(UPLOAD_FOLDER + "/{avatar}")
+						.buildAndExpand(item.getAvatar())
+						.toUri());
+				return new ResponseEntity<UserInfo>(item, headers, HttpStatus.OK);
 			}
 		}
-
+		
 		return new ResponseEntity<UserInfo>(new UserInfo(), HttpStatus.NO_CONTENT);
 	}
 }
