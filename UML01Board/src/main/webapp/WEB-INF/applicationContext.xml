@@ -20,6 +20,8 @@
 			 method="POST" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
 		<intercept-url pattern="/rest/user"  
 			 method="POST" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
+		<intercept-url pattern="/rest/board/attachment/**"
+			 method="GET" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
 		<intercept-url pattern="/rest/**"
 			access="ROLE_ADMIN, ROLE_USER"/>
 		<intercept-url pattern="/rest/**"   
