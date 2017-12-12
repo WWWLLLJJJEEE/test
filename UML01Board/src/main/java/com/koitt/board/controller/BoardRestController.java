@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,12 +21,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.koitt.board.model.Board;
 import com.koitt.board.model.CommonException;
+import com.koitt.board.model.UserInfo;
 import com.koitt.board.service.BoardService;
+import com.koitt.board.service.UserInfoService;
 
 @RestController
 @RequestMapping("/rest")
@@ -37,6 +42,9 @@ public class BoardRestController {
 
 	@Autowired
 	private BoardService boardService;
+	
+	@Autowired
+	private UserInfoService userInfoService;
 
 	// 글 목록
 	@RequestMapping(value = "/board", method = RequestMethod.GET, 
@@ -143,4 +151,61 @@ public class BoardRestController {
 			}
 		}
 	}
+	
+	// 글 추가
+		@RequestMapping(value = "/board", method = RequestMethod.POST,
+				produces = { MediaType.APPLICATION_JSON_UTF8_VALUE, 
+				MediaType.APPLICATION_XML_VALUE })
+		public  ResponseEntity<Void> newBoard(HttpServletRequest request,
+				Integer email,
+				String title,
+				String content,
+				@RequestParam("attachment") MultipartFile attachment,
+				 UriComponentsBuilder ucBuilder)
+						throws CommonException, Exception {
+			
+			UserInfo item = userInfoService.detail(email);
+			
+			Board board = new Board();
+			board.setId(item.getId());
+			board.setTitle(title);
+			board.setContent(content);
+
+			// 최상위 경로 밑에 upload 폴더의 경로를 가져온다.
+			String path = request.getServletContext().getRealPath(UPLOAD_FOLDER);
+
+			// MultipartFile 객체에서 파일명을 가져온다.
+			String originalName = attachment.getOriginalFilename();
+
+			// upload 폴더가 없다면, upload 폴더 생성
+			File directory = new File(path);
+			if (!directory.exists()) {
+				directory.mkdir();
+			}
+
+			// attachment 객체를 이용하여, 파일을 서버에 전송
+			if (attachment != null && !attachment.isEmpty()) {
+				int idx = originalName.lastIndexOf(".");
+				String name = originalName.substring(0, idx);
+				String ext = originalName.substring(idx, originalName.length());
+				String uploadFilename = name
+						+ Long.toHexString(System.currentTimeMillis())
+						+ ext;
+				attachment.transferTo(new File(path, uploadFilename));
+				uploadFilename = URLEncoder.encode(uploadFilename, "UTF-8");
+				board.setAttachment(uploadFilename);
+			}
+
+			boardService.newBoard(board);
+				
+			HttpHeaders headers = new HttpHeaders();
+			headers.setLocation(ucBuilder.path("/rest/board/{no}")
+					.buildAndExpand(board.getNo()).toUri());
+			
+			return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+		}
+	
+	// 글 수정
+	
+	// 글 삭제
 }
