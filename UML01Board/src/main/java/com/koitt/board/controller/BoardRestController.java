@@ -30,6 +30,7 @@ import com.koitt.board.model.Board;
 import com.koitt.board.model.CommonException;
 import com.koitt.board.model.UserInfo;
 import com.koitt.board.service.BoardService;
+import com.koitt.board.service.FileService;
 import com.koitt.board.service.UserInfoService;
 
 @RestController
@@ -42,6 +43,9 @@ public class BoardRestController {
 
 	@Autowired
 	private BoardService boardService;
+	
+	@Autowired
+	private FileService fileService;
 	
 	@Autowired
 	private UserInfoService userInfoService;
@@ -152,10 +156,8 @@ public class BoardRestController {
 		}
 	}
 	
-	// 글 추가
-		@RequestMapping(value = "/board", method = RequestMethod.POST,
-				produces = { MediaType.APPLICATION_JSON_UTF8_VALUE, 
-				MediaType.APPLICATION_XML_VALUE })
+		// 글 추가
+		@RequestMapping(value = "/board", method = RequestMethod.POST)
 		public  ResponseEntity<Void> newBoard(HttpServletRequest request,
 				Integer email,
 				String title,
@@ -205,7 +207,52 @@ public class BoardRestController {
 			return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
 		}
 	
-	// 글 수정
-	
+		// 글 수정
+		// 글 수정 후, 글 목록 화면으로 이동
+		@RequestMapping(value = "/board", method = RequestMethod.PUT)
+		public ResponseEntity<Void> modify(HttpServletRequest request,
+				int no,
+				String title,
+				String content,
+				@RequestParam("attachment") MultipartFile attachment,
+				String password,
+				UriComponentsBuilder ucBuilder)
+						throws CommonException, Exception {
+			
+			// 비밀번호 비교해서 같지 않다면 오류메시지 출력
+			boolean isMatched = userInfoService.isBoardMatched(no, password);
+			if (!isMatched) {
+				return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+			}
+
+			Board board = new Board();
+			board.setNo(no);
+			board.setTitle(title);
+			board.setContent(content);
+
+			String path = request.getServletContext().getRealPath(UPLOAD_FOLDER);
+			String originalName = attachment.getOriginalFilename();
+
+			// attachment 객체를 이용하여, 파일을 서버에 전송
+			if (attachment != null && !attachment.isEmpty()) {
+				int idx = originalName.lastIndexOf(".");
+				String name = originalName.substring(0, idx);
+				String ext = originalName.substring(idx, originalName.length());
+				String uploadFilename = name
+						+ Long.toHexString(System.currentTimeMillis())
+						+ ext;
+				attachment.transferTo(new File(path, uploadFilename));
+				uploadFilename = URLEncoder.encode(uploadFilename, "UTF-8");
+				board.setAttachment(uploadFilename);
+			}
+
+			String oldFilename = boardService.modify(board);
+			if (oldFilename != null && !oldFilename.trim().isEmpty()) {
+				fileService.remove(request, UPLOAD_FOLDER, oldFilename);
+			}
+
+			return new ResponseEntity<Void>(HttpStatus.OK);
+		}
+		
 	// 글 삭제
 }
