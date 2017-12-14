@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,19 +39,19 @@ import com.koitt.board.service.UserInfoService;
 @RestController
 @RequestMapping("/rest")
 public class BoardRestController {
-	
+
 	private static final String UPLOAD_FOLDER = "/upload";
 
 	private Logger logger = LogManager.getLogger(this.getClass());
 
 	@Autowired
 	private BoardService boardService;
-	
-	@Autowired
-	private FileService fileService;
-	
+
 	@Autowired
 	private UserInfoService userInfoService;
+
+	@Autowired
+	private FileService fileService;
 
 	// 글 목록
 	@RequestMapping(value = "/board", method = RequestMethod.GET, 
@@ -155,104 +158,137 @@ public class BoardRestController {
 			}
 		}
 	}
-	
-		// 글 추가
-		@RequestMapping(value = "/board", method = RequestMethod.POST)
-		public  ResponseEntity<Void> newBoard(HttpServletRequest request,
-				Integer email,
-				String title,
-				String content,
-				@RequestParam("attachment") MultipartFile attachment,
-				 UriComponentsBuilder ucBuilder)
-						throws CommonException, Exception {
-			
-			UserInfo item = userInfoService.detail(email);
-			
-			Board board = new Board();
-			board.setId(item.getId());
-			board.setTitle(title);
-			board.setContent(content);
 
-			// 최상위 경로 밑에 upload 폴더의 경로를 가져온다.
-			String path = request.getServletContext().getRealPath(UPLOAD_FOLDER);
+	// 글 추가
+	@RequestMapping(value = "/board", method = RequestMethod.POST)
+	public ResponseEntity<Void> newBoard(HttpServletRequest request,
+			String email,
+			String title,
+			String content,
+			@RequestParam("attachment") MultipartFile attachment,
+			UriComponentsBuilder ucBuilder)
+					throws CommonException, Exception {
 
-			// MultipartFile 객체에서 파일명을 가져온다.
-			String originalName = attachment.getOriginalFilename();
+		UserInfo item = userInfoService.detail(email);
 
-			// upload 폴더가 없다면, upload 폴더 생성
-			File directory = new File(path);
-			if (!directory.exists()) {
-				directory.mkdir();
-			}
+		Board board = new Board();
+		board.setId(item.getId());
+		board.setTitle(title);
+		board.setContent(content);
 
-			// attachment 객체를 이용하여, 파일을 서버에 전송
-			if (attachment != null && !attachment.isEmpty()) {
-				int idx = originalName.lastIndexOf(".");
-				String name = originalName.substring(0, idx);
-				String ext = originalName.substring(idx, originalName.length());
-				String uploadFilename = name
-						+ Long.toHexString(System.currentTimeMillis())
-						+ ext;
-				attachment.transferTo(new File(path, uploadFilename));
-				uploadFilename = URLEncoder.encode(uploadFilename, "UTF-8");
-				board.setAttachment(uploadFilename);
-			}
+		// 최상위 경로 밑에 upload 폴더의 경로를 가져온다.
+		String path = request.getServletContext().getRealPath(UPLOAD_FOLDER);
 
-			boardService.newBoard(board);
-				
-			HttpHeaders headers = new HttpHeaders();
-			headers.setLocation(ucBuilder.path("/rest/board/{no}")
-					.buildAndExpand(board.getNo()).toUri());
-			
-			return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+		// MultipartFile 객체에서 파일명을 가져온다.
+		String originalName = attachment.getOriginalFilename();
+
+		// upload 폴더가 없다면, upload 폴더 생성
+		File directory = new File(path);
+		if (!directory.exists()) {
+			directory.mkdir();
 		}
-	
-		// 글 수정
-		// 글 수정 후, 글 목록 화면으로 이동
-		@RequestMapping(value = "/board", method = RequestMethod.PUT)
-		public ResponseEntity<Void> modify(HttpServletRequest request,
-				int no,
-				String title,
-				String content,
-				@RequestParam("attachment") MultipartFile attachment,
-				String password,
-				UriComponentsBuilder ucBuilder)
-						throws CommonException, Exception {
-			
-			// 비밀번호 비교해서 같지 않다면 오류메시지 출력
-			boolean isMatched = userInfoService.isBoardMatched(no, password);
-			if (!isMatched) {
-				return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
-			}
 
-			Board board = new Board();
-			board.setNo(no);
-			board.setTitle(title);
-			board.setContent(content);
-
-			String path = request.getServletContext().getRealPath(UPLOAD_FOLDER);
-			String originalName = attachment.getOriginalFilename();
-
-			// attachment 객체를 이용하여, 파일을 서버에 전송
-			if (attachment != null && !attachment.isEmpty()) {
-				int idx = originalName.lastIndexOf(".");
-				String name = originalName.substring(0, idx);
-				String ext = originalName.substring(idx, originalName.length());
-				String uploadFilename = name
-						+ Long.toHexString(System.currentTimeMillis())
-						+ ext;
-				attachment.transferTo(new File(path, uploadFilename));
-				uploadFilename = URLEncoder.encode(uploadFilename, "UTF-8");
-				board.setAttachment(uploadFilename);
-			}
-
-			String oldFilename = boardService.modify(board);
-			if (oldFilename != null && !oldFilename.trim().isEmpty()) {
-				fileService.remove(request, UPLOAD_FOLDER, oldFilename);
-			}
-
-			return new ResponseEntity<Void>(HttpStatus.OK);
+		// attachment 객체를 이용하여, 파일을 서버에 전송
+		if (attachment != null && !attachment.isEmpty()) {
+			int idx = originalName.lastIndexOf(".");
+			String name = originalName.substring(0, idx);
+			String ext = originalName.substring(idx, originalName.length());
+			String uploadFilename = name
+					+ Long.toHexString(System.currentTimeMillis())
+					+ ext;
+			attachment.transferTo(new File(path, uploadFilename));
+			uploadFilename = URLEncoder.encode(uploadFilename, "UTF-8");
+			board.setAttachment(uploadFilename);
 		}
-		
+
+		boardService.newBoard(board);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setLocation(ucBuilder.path("/rest/board/{no}")
+				.buildAndExpand(board.getNo()).toUri());
+
+		return new ResponseEntity<Void>(headers, HttpStatus.CREATED);
+	}
+
+	// 글 수정
+	
+	/*
+	* 	글 수정
+	*	https://blog.outsider.ne.kr/1001
+	*	1.Multipart/form-data 전송 시에는 POST로 전송해야 한다.
+	*	2. 만약 PUT을 이용해서 전송하고 싶다면, input type file에 대해서는 
+	*	   따로 POST로 전송하고, 나머지 일반 정보는 PUT으로 따로 전송한다.
+	*/
+	@RequestMapping(value = "/board/{no}", method = RequestMethod.POST)
+	public ResponseEntity<Void> modify(HttpServletRequest request,
+			@PathVariable("no") int no,
+			String title,
+			String content,
+			@RequestParam("attachment") MultipartFile attachment,
+			String password,
+			UriComponentsBuilder ucBuilder)
+					throws CommonException, Exception {
+
+		// 비밀번호 비교해서 같지 않다면 오류메시지 출력
+		boolean isMatched = userInfoService.isBoardMatched(no, password);
+		if (!isMatched) {
+			return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+		}
+
+		Board board = new Board();
+		board.setNo(no);
+		board.setTitle(title);
+		board.setContent(content);
+
+		String path = request.getServletContext().getRealPath(UPLOAD_FOLDER);
+		String originalName = attachment.getOriginalFilename();
+
+		// attachment 객체를 이용하여, 파일을 서버에 전송
+		if (attachment != null && !attachment.isEmpty()) {
+			int idx = originalName.lastIndexOf(".");
+			String name = originalName.substring(0, idx);
+			String ext = originalName.substring(idx, originalName.length());
+			String uploadFilename = name
+					+ Long.toHexString(System.currentTimeMillis())
+					+ ext;
+			attachment.transferTo(new File(path, uploadFilename));
+			uploadFilename = URLEncoder.encode(uploadFilename, "UTF-8");
+			board.setAttachment(uploadFilename);
+		}
+
+		String oldFilename = boardService.modify(board);
+		if (oldFilename != null && !oldFilename.trim().isEmpty()) {
+			fileService.remove(request, UPLOAD_FOLDER, oldFilename);
+		}
+
+		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
+
 	// 글 삭제
+	/*
+	 *  @RequestHeader("Authorization")을 사용하면
+	 *  "Basic encodeBase64(email:password)" 정보를 가져올 수 있다.
+	 */
+	@RequestMapping(value = "/board/{no}", method = RequestMethod.DELETE)
+	public ResponseEntity<Void> remove(HttpServletRequest request,
+			@PathVariable("no") String no,
+			@RequestHeader("Authorization") String authorization)
+					throws CommonException, UnsupportedEncodingException {
+		
+		String base64Credentials = authorization.split(" ")[1];
+		String plainCredentials = new String(Base64.decodeBase64(base64Credentials));
+		String password = plainCredentials.split(":")[1];
+
+		boolean isMatched = userInfoService.isBoardMatched(Integer.parseInt(no), password);
+		if (!isMatched) {
+			return new ResponseEntity<Void>(HttpStatus.UNAUTHORIZED);
+		}
+
+		String filename = boardService.remove(no);
+		if (filename != null && !filename.trim().isEmpty()) {
+			fileService.remove(request, UPLOAD_FOLDER, filename);
+		}
+
+		return new ResponseEntity<Void>(HttpStatus.OK);
+	}
 }
